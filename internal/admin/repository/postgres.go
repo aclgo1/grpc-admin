@@ -4,20 +4,18 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/aclgo/grpc-admin/internal/admin"
 	"github.com/aclgo/grpc-admin/internal/models"
-	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 )
 
 var (
 	sqlCreate = `INSERT INTO users (user_id, name, last_name, password, email,
-		role, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
-		RETURNING user_id, name, last_name, password, email, role, created_at, updated_at`
-	sqlDelete = `DROP * FROM users where user_id=$1`
+		role, verified, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
+		RETURNING user_id, name, last_name, password, email, role, verified, created_at, updated_at`
+	sqlDelete = `delete from users where user_id=$1`
 )
 
 type postgresRepo struct {
@@ -35,14 +33,15 @@ func (a *postgresRepo) Create(ctx context.Context, user *models.ParamsCreateAdmi
 	var created models.ParamsUser
 
 	err := a.db.QueryRowxContext(ctx, sqlCreate,
-		uuid.NewString(),
+		user.Id,
 		user.Name,
 		user.Lastname,
 		user.Password,
 		user.Email,
 		user.Role,
-		time.Now(),
-		time.Now(),
+		user.Verified,
+		user.CreatedAt,
+		user.UpdatedAt,
 	).StructScan(&created)
 	switch {
 	case errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled):
@@ -116,4 +115,12 @@ func (a *postgresRepo) Search(ctx context.Context, params *admin.ParamsSearchUse
 	}
 
 	return &models.DataSearchedUser{Total: total, Users: items}, nil
+}
+
+func (a *postgresRepo) Delete(ctx context.Context, params *models.ParamsDeleteUser) error {
+	if _, err := a.db.Exec(sqlDelete, params.UserId); err != nil {
+		return err
+	}
+
+	return nil
 }

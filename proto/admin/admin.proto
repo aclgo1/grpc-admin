@@ -11,6 +11,7 @@ message ParamsCreateAdmin{
 	string password = 3;
 	string email    = 4;
 	string role     = 5;
+    string verified = 6;
 }
 
 message ParamsUser  {
@@ -39,7 +40,16 @@ message ParamsSearchResponse {
     repeated ParamsUser users = 2;
 }
 
+message ParamsDeleteUserRequest {
+    string user_id = 1;
+}
+
+message ParamsDeleteUserResponse {
+    string msg = 1;
+}
+
 service AdminService {
     rpc Register(ParamsCreateAdmin) returns (ParamsUser) {}
     rpc Search(ParamsSearchRequest) returns (ParamsSearchResponse) {}
+    rpc DeleteUser(ParamsDeleteUserRequest) returns (ParamsDeleteUserResponse) {}
 }

@@ -58,7 +58,6 @@ func (e2e *e2eConfig) registerUser(ctx context.Context) error {
 		Lastname: "e2e",
 		Password: "aclgo_e2e",
 		Email:    uuid.NewString() + "@gmail,com",
-		Role:     "admin",
 	}
 
 	_, err := e2e.svcClient.Register(
@@ -67,7 +66,6 @@ func (e2e *e2eConfig) registerUser(ctx context.Context) error {
 			Lastname: createParams.Lastname,
 			Password: createParams.Password,
 			Email:    createParams.Email,
-			Role:     createParams.Role,
 		},
 	)
 

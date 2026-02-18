@@ -2,14 +2,11 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/aclgo/grpc-admin/config"
-	"github.com/aclgo/grpc-admin/e2e"
 	"github.com/aclgo/grpc-admin/internal/server"
 	"github.com/aclgo/grpc-admin/pkg/logger"
 	"github.com/aclgo/grpc-admin/pkg/postgres"
@@ -18,8 +15,6 @@ import (
 func main() {
 
 	cfg := config.NewConfig(".")
-
-	fmt.Println(cfg)
 
 	logger := logger.NewapiLogger(cfg)
 
@@ -43,10 +38,10 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
-	go func() {
-		time.Sleep(time.Second * 10)
-		e2e.Run(cfg)
-	}()
+	// go func() {
+	// 	time.Sleep(time.Second * 10)
+	// 	e2e.Run(cfg)
+	// }()
 
 	if err := server.Run(ctx); err != nil {
 		logger.Errorf("server.Run: %v", err)

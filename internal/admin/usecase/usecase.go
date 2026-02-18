@@ -2,10 +2,12 @@ package usecase
 
 import (
 	"context"
+	"time"
 
 	"github.com/aclgo/grpc-admin/internal/admin"
 	"github.com/aclgo/grpc-admin/internal/models"
 	"github.com/aclgo/grpc-admin/pkg/logger"
+	"github.com/google/uuid"
 )
 
 type AdminService struct {
@@ -23,11 +25,15 @@ func NewAdminService(adminRepo admin.AdminRepo, logger logger.Logger) *AdminServ
 func (a *AdminService) Create(ctx context.Context, params *admin.ParamsCreateAdmin) (*models.ParamsUser, error) {
 
 	created, err := a.adminRepo.Create(ctx, &models.ParamsCreateAdmin{
-		Name:     params.Name,
-		Lastname: params.Lastname,
-		Password: params.Password,
-		Email:    params.Email,
-		Role:     params.Role,
+		Id:        uuid.NewString(),
+		Name:      params.Name,
+		Lastname:  params.Lastname,
+		Password:  params.HashPass(),
+		Email:     params.Email,
+		Role:      params.Role,
+		Verified:  params.Verified,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	})
 
 	if err != nil {
@@ -55,4 +61,14 @@ func (a *AdminService) SearchUsers(ctx context.Context, params *admin.ParamsSear
 	}
 
 	return searched, nil
+}
+
+func (a *AdminService) Delete(ctx context.Context, params *admin.ParamsDeleteUser) error {
+	if err := a.adminRepo.Delete(ctx, &models.ParamsDeleteUser{
+		UserId: params.UserId,
+	}); err != nil {
+		logger.Logger.Errorf(a.logger, "a.adminRepo.Delete:%w", err)
+		return err
+	}
+	return nil
 }

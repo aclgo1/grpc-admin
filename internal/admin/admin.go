@@ -8,17 +8,20 @@ import (
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type AdminUC interface {
 	Create(ctx context.Context, params *ParamsCreateAdmin) (*models.ParamsUser, error)
 	SearchUsers(ctx context.Context, params *ParamsSearchUsers) (*models.DataSearchedUser, error)
+	Delete(context.Context, *ParamsDeleteUser) error
 }
 
 type AdminRepo interface {
 	Create(context.Context, *models.ParamsCreateAdmin) (*models.ParamsUser, error)
 	// Find(context.Context, *models.ParamsFind) (*models.ParamsUser, error)
 	Search(context.Context, *ParamsSearchUsers) (*models.DataSearchedUser, error)
+	Delete(context.Context, *models.ParamsDeleteUser) error
 }
 
 type Observability struct {
@@ -33,6 +36,8 @@ var (
 	ErrInvalidPageSearch = errors.New("invalid page")
 	ErrInvalidLimit      = errors.New("invalid limit")
 	ErrInvalidOffset     = errors.New("invalid offset")
+	DefaultVerify        = "no"
+	DefaultRole          = "admin"
 )
 
 type ParamsCreateAdmin struct {
@@ -41,6 +46,14 @@ type ParamsCreateAdmin struct {
 	Password string `json:"password"`
 	Email    string `json:"email"`
 	Role     string `json:"role"`
+	Verified string `json:"verified"`
+}
+
+func (p *ParamsCreateAdmin) HashPass() string {
+	bc, _ := bcrypt.GenerateFromPassword([]byte(p.Password), bcrypt.DefaultCost)
+
+	return string(bc)
+
 }
 
 type ParamsSearchUsers struct {
@@ -101,4 +114,8 @@ func NewParamsSearchUsers(query, role, page, offset, limit string) (*ParamsSearc
 			Limit:  parsedLimit,
 		},
 	}, nil
+}
+
+type ParamsDeleteUser struct {
+	UserId string
 }

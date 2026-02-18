@@ -13,8 +13,8 @@ type ParamsUser struct {
 	Lastname  string    `json:"last_name" db:"last_name"`
 	Password  string    `json:"password,omitempty"`
 	Email     string    `json:"email"`
-	Role      string    `json:"role"`
-	Verified  string    `json:"verified"`
+	Role      string    `json:"role" db:"role"`
+	Verified  string    `json:"verified" db:"verified"`
 	CreatedAt time.Time `json:"created_at,omitempty" db:"created_at"`
 	UpdatedAt time.Time `json:"updated_at,omitempty" db:"updated_at"`
 }
@@ -29,11 +29,15 @@ func (p *ParamsUser) ClearPass() {
 }
 
 type ParamsCreateAdmin struct {
-	Name     string
-	Lastname string
-	Password string
-	Email    string
-	Role     string
+	Id        string
+	Name      string
+	Lastname  string
+	Password  string
+	Email     string
+	Role      string
+	Verified  string
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 var (
@@ -46,7 +50,7 @@ func (p *ParamsCreateAdmin) Validate() error {
 
 	switch p.Role {
 	case "admin":
-	case "user":
+	case "client":
 	default:
 		return ErrRoleUndefined
 	}
@@ -61,3 +65,6 @@ func (p *ParamsCreateAdmin) HashPass() {
 
 type ParamsFind struct{}
 type ParamsFindAll struct{}
+type ParamsDeleteUser struct {
+	UserId string
+}

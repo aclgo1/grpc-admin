@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aclgo/grpc-admin/internal/admin"
 	"github.com/aclgo/grpc-admin/internal/models"
@@ -23,6 +24,7 @@ func (s *AdminService) Register(ctx context.Context, req *proto.ParamsCreateAdmi
 		Password: req.Password,
 		Email:    req.Email,
 		Role:     req.Role,
+		Verified: req.Verified,
 	})
 
 	if err != nil {
@@ -82,4 +84,20 @@ func parseModelProto(items []*models.ParamsUser) []*proto.ParamsUser {
 	}
 
 	return users
+}
+
+func (s *AdminService) DeleteUser(ctx context.Context, req *proto.ParamsDeleteUserRequest) (*proto.ParamsDeleteUserResponse, error) {
+	i := admin.ParamsDeleteUser{
+		UserId: req.UserId,
+	}
+
+	if err := s.adminUC.Delete(ctx, &i); err != nil {
+		return nil, err
+	}
+
+	out := proto.ParamsDeleteUserResponse{
+		Msg: fmt.Sprintf("user id %s deleted", i.UserId),
+	}
+
+	return &out, nil
 }
