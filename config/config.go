@@ -20,6 +20,9 @@ type Config struct {
 	LogLevel          string `mapstructure:"LOG_LEVEL"`
 	TracerExporterURL string `mapstructure:"TRACER_EXPORTER_URL"`
 	MetricExporterURL string `mapstructure:"METER_EXPORTER_URL"`
+	RedisAddr         string `mapstructure:"REDIS_ADDR"`
+	RedisDB           int    `mapstructure:"REDIS_DB"`
+	RedisPass         string `mapstructure:"REDIS_PASS"`
 }
 
 func NewConfig(path string) *Config {

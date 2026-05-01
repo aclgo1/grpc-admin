@@ -2,10 +2,13 @@ package admin
 
 import (
 	"context"
+	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/aclgo/grpc-admin/internal/models"
 	"github.com/pkg/errors"
+	"github.com/redis/go-redis/v9"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/crypto/bcrypt"
@@ -22,6 +25,24 @@ type AdminRepo interface {
 	// Find(context.Context, *models.ParamsFind) (*models.ParamsUser, error)
 	Search(context.Context, *ParamsSearchUsers) (*models.DataSearchedUser, error)
 	Delete(context.Context, *models.ParamsDeleteUser) error
+}
+
+type RedisRepo interface {
+	Pipeline() redis.Pipeliner
+	Publish(context.Context, string, interface{}) *redis.IntCmd
+}
+
+func FormatActiveSessionAccess(s string) string {
+	return fmt.Sprintf("active-access-session:%s", s)
+}
+
+func FormatActiveSessionRefresh(s string) string {
+	return fmt.Sprintf("active-refresh-session:%s", s)
+}
+
+func FormatTokenDisconnectChannel(userId string) string {
+	now := time.Now().UTC().Format(time.RFC3339)
+	return fmt.Sprintf("%s|%s", userId, now)
 }
 
 type Observability struct {

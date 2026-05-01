@@ -13,11 +13,13 @@ import (
 type AdminService struct {
 	adminRepo admin.AdminRepo
 	logger    logger.Logger
+	redisRepo admin.RedisRepo
 }
 
-func NewAdminService(adminRepo admin.AdminRepo, logger logger.Logger) *AdminService {
+func NewAdminService(adminRepo admin.AdminRepo, redisRepo admin.RedisRepo, logger logger.Logger) *AdminService {
 	return &AdminService{
 		adminRepo: adminRepo,
+		redisRepo: redisRepo,
 		logger:    logger,
 	}
 }
@@ -70,5 +72,17 @@ func (a *AdminService) Delete(ctx context.Context, params *admin.ParamsDeleteUse
 		logger.Logger.Errorf(a.logger, "a.adminRepo.Delete:%w", err)
 		return err
 	}
+
+	a.redisRepo.Publish(ctx, "disconnect_channel", admin.FormatTokenDisconnectChannel(params.UserId))
+
+	pipe := a.redisRepo.Pipeline()
+	pipe.Del(ctx, admin.FormatActiveSessionAccess(params.UserId))
+	pipe.Del(ctx, admin.FormatActiveSessionRefresh(params.UserId))
+
+	if _, err := pipe.Exec(ctx); err != nil {
+		logger.Logger.Errorf(a.logger, "pipe.Exec:%w", err)
+		return err
+	}
+
 	return nil
 }

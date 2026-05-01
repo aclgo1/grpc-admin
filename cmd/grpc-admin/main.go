@@ -10,6 +10,7 @@ import (
 	"github.com/aclgo/grpc-admin/internal/server"
 	"github.com/aclgo/grpc-admin/pkg/logger"
 	"github.com/aclgo/grpc-admin/pkg/postgres"
+	"github.com/aclgo/grpc-admin/pkg/rds"
 )
 
 func main() {
@@ -32,8 +33,9 @@ func main() {
 	// tr := otel.TracerProvider.Tracer("grpc-jwt")
 
 	db := postgres.Connect(cfg.DbDriver, cfg.DbURI)
+	redis := rds.Connect(cfg)
 
-	server := server.NewServer(cfg, db, logger, nil)
+	server := server.NewServer(cfg, db, redis, logger, nil)
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()

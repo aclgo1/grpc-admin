@@ -14,6 +14,7 @@ import (
 	proto "github.com/aclgo/grpc-admin/proto/admin"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
 )
 
@@ -22,12 +23,14 @@ type Server struct {
 	db            *sqlx.DB
 	logger        logger.Logger
 	observability *admin.Observability
+	redis         *redis.Client
 }
 
-func NewServer(cfg *config.Config, db *sqlx.DB, logger logger.Logger, obs *admin.Observability) *Server {
+func NewServer(cfg *config.Config, db *sqlx.DB, rds *redis.Client, logger logger.Logger, obs *admin.Observability) *Server {
 	return &Server{
 		config:        cfg,
 		db:            db,
+		redis:         rds,
 		logger:        logger,
 		observability: obs,
 	}
@@ -35,7 +38,7 @@ func NewServer(cfg *config.Config, db *sqlx.DB, logger logger.Logger, obs *admin
 
 func (s *Server) Run(ctx context.Context) error {
 	adminRepo := repository.NewpostgresRepo(s.db)
-	adminUC := usecase.NewAdminService(adminRepo, s.logger)
+	adminUC := usecase.NewAdminService(adminRepo, s.redis, s.logger)
 
 	handlers := service.NewAdminService(adminUC, s.observability)
 
